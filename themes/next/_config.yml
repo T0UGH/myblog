@@ -111,8 +111,8 @@ menu_icons:
 
 # Schemes
 # scheme: Muse
-scheme: Mist
-# scheme: Pisces
+# scheme: Mist
+scheme: Pisces
 # scheme: Gemini
 
 
@@ -147,8 +147,8 @@ links_title: Friends
 # links_layout: block
 links_layout: inline
 links:
-  Mike: https:https://mike4ellis.github.io/
-  ChengYi: https://neusoftware.top/
+  ChengYi: https://neusoftware.top/solo
+  Mike: https://mike4ellis.github.io/
 
 
 # Sidebar Avatar
