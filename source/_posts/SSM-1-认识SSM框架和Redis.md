@@ -7,7 +7,7 @@ tags:
     - SpringMVC
     - MyBatis
 categories:
-    - JavaScript
+    - SSM
 ---
 ## 第 1 章 认识SSM框架和Redis
 
