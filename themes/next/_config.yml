@@ -128,7 +128,6 @@ scheme: Mist
 social:
   GitHub: https://github.com/T0UGH || github
   E-Mail: tough.neu.edu@gmail.com || envelope
-  Google: https://plus.google.com/yourname || google
   #Twitter: https://twitter.com/yourname || twitter
   #FB Page: https://www.facebook.com/yourname || facebook
   #VK Group: https://vk.com/yourname || vk
@@ -145,12 +144,12 @@ social_icons:
 # Blog rolls
 links_icon: link
 links_title: Friends
-links_layout: block
-#links_layout: inline
+# links_layout: block
+links_layout: inline
 links:
   Mike: https:https://mike4ellis.github.io/
   ChengYi: https://neusoftware.top/
-  
+
 
 # Sidebar Avatar
 # in theme directory(source/images): /images/avatar.gif
