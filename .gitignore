@@ -5,3 +5,18 @@ db.json
 node_modules/
 public/
 .deploy*/
+
+# Ignore unused verdors' files
+theme/next/source/lib/fancybox/*
+!theme/next/source/lib/fancybox/source/
+
+theme/next/source/lib/font-awesome/less/
+theme/next/source/lib/font-awesome/scss/
+
+theme/next/source/lib/ua-parser-js/*
+!theme/next/source/lib/ua-parser-js/dist/
+
+theme/next/source/lib/Han/*
+!theme/next/source/lib/Han/dist/
+theme/next/node_modules
+theme/next/package-lock.json
