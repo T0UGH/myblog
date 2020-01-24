@@ -2,7 +2,7 @@
 title: '[SSM][9][SpringIOC的概念]'
 date: 2019-12-25 12:49:37
 tags:
-    - SpringIOC
+    - Spring
 categories:
     - SSM
 ---
