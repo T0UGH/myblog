@@ -18,15 +18,16 @@ categories:
 ### 5.1 概述
 
 映射器的配备元素如下
-|元素名称|描述|备注|
+
+| 元素名称 | 描述 | 备注 |
 |--|--|--|
 |select|查询语句|可以自定义参数，返回结果集等|
 |insert|插入语句|执行后返回一个整数，代表插入的条数|
 |update|更新语句|执行后返回一个整数，代表删除的条数|
 |sql|允许定义一部分SQL，然后在其他地方引用它|例如，一张表列名，一次定义，可以在多个SQL语句中使用|
 |resultMap|用来描述从数据库结果集中来加载对象|它将提供映射规则|
-|cache|给定命名空间的缓存配置||
-|cache-ref|其他命名空间缓存配置的引用||
+|cache|给定命名空间的缓存配置|无|
+|cache-ref|其他命名空间缓存配置的引用|无|
 
 ### 5.2 select元素(查询语句)
 
@@ -133,12 +134,15 @@ public List<Role> findRolesByBean(RoleParams roleParam);
 ````
 
 此时映射文件定义为：其中`parameterType`设置为上文定义的POJO的路径
+
+````xml
 <select id="findRolesByBean" parameterType= "com.learn.ssm.chapterS.param.RoleParams"
 resultType="role">
     select id, role name as roleName, note from t role
     where role name like concat ('%', #{roleName}, '%')
     and note like concat ('%', #{note}, '%')
 </select>
+````
 
 引用`JavaBean`定义的属性作为参数，然后查询
 ````java
