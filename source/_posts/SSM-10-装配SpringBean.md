@@ -368,4 +368,159 @@ categories:
 
 - 这里还配置了`@Bean`的`name`选项为`dataSource`，这就意味着Spring生成该`Bean`的时候就会使用`dataSource`作为其`BeanName`。和其他`Bean`一样，它也可以通过`@Autowired`或者`@Qualifier`等注解注入到别的`Bean`中
 
+### 10.5 装配的混合使用
+
+Spring同时支持XML和注解两种装配方式，无论采用哪种，本质都是将`Bean`装配到`Spring IoC`容器中
+
+建议
+1. 在自己的工程中所开发的类尽量使用注解方法，因为使用它更为简单
+2. 对于引入第三方或者服务的类，尽量使用`XML`方式，这样可以尽量减少对第三方包细节的理解，更清晰
+
+如何将`xml`定义的`bean`引入`java`配置中?
+- 可以使用注解`@ImportResourse`，它可以配置多个`XML`配置文件，将这些文件中定义的`bean`全部引入
+- 例如
+    ````java
+    package com.ssm.annotation.config
+    import org.springframework.context.anotation.ComponentScan;
+    import org.springframework.context.anotation.ImportResource;
+    @ComponentScan(basePackages={"com.ssm.chapter10.annotation"})
+    @ImportResource({"classpath:spring-dataSource.xml"})
+    public class ApplicationConfig{}
+    ````
+
+### 10.6 使用Profile
+
+背景: 在软件开发中，可能开发人员使用一套环境，而测试人员使用另一套环境，这就有了在不同的环境中进行切换的需求。Spring也对这样的场景进行了支持，在Spring中可以定义`Bean`的`Profile`，方式有两种
+1. 使用注解`@Profile`配置
+2. 使用`xml`定义`Profile`
+
+#### 10.6.1 使用注解@Profile配置
+
+例子如下
+````java
+package com.ssm.chapter10.profile;
+@Component
+public class ProfileDataSource{
+    @Bean(name="devDataSource")
+    @Profile("dev")
+    public DataSource getDevDataSource() {
+        Properties props= new Properties();
+        props.setProperty("driver", "com.mysql.jdbc.Driver");
+        props.setProperty("url", "jdbc:mysql://localhost:3306/chapter12");
+        props.setProperty("username", "root");
+        props.setProperty("password", "123456");
+        DataSource dataSource = null;
+        try{
+            dataSource = BasicDataSourceFactory.createDataSource(props);
+        }catch(Exception e){
+            e.printStackTrace();
+            return dataSource;
+        }
+    }
+    @Bean(name="testDataSource")
+    @Profile("test")
+    public DataSource getTestDataSource(){
+        Properties props=new Properties();
+        props.setProperty("driver", "com.mysql.jdbc.Driver");
+        props.setProperty("url", "jdbc:mysql://localhost:3306/chapter13");
+        props.setProperty("username", "root");
+        props.setProperty("password", "123456");
+        DataSource dataSource = null;
+        try{
+            dataSource = BasicDataSourceFactory.createDataSource(props);
+        }catch(Exception e){
+            e.printStackTrace();
+            return dataSource;
+        }
+    }
+}
+````
+
+#### 10.6.2 使用xml定义Profile
+
+例子如下
+````xml
+<?xml version='1.0' encoding='UTF-8'?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p" xsi:schemaLocation="http://www.springframework.org/schema/beans">
+    <beans profile="test">
+        <bean id="devDataSource" class="org.apache.commons.dbcp.BaseDataSource">
+            <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+            <property name="url" value="jdbc:mysql://localhost:3306/chapter12"/>
+            <property name="username" value="root"/>
+            <property name="password" value="123456"/>
+        </bean>
+    </beans>
+        <beans profile="dev">
+        <bean id="devDataSource" class="org.apache.commons.dbcp.BaseDataSource">
+            <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+            <property name="url" value="jdbc:mysql://localhost:3306/chapter13"/>
+            <property name="username" value="root"/>
+            <property name="password" value="123456"/>
+        </bean>
+    </beans>
+````
+
+#### 10.6.3 启动Profile
+
+当启动`Java`配置或者`XML`配置`Profile`时，可以发现这两个`Bean`并不会被加载到`SpringIoC`容器中，需要自行激活`Profile`。激活`Profile`的方法有5种
+1. 在使用`SpringMVC`的情况下可以配置`web`上下文参数，或者`DispatchServlet`参数
+2. 作为`JNDI`条目
+3. 配置环境变量
+4. 配置`JVM`启动参数。
+5. 在集成测试环境中使用`＠ActiveProfiles`
+
+### 10.7 加载属性(properties)文件
+
+略
+
+### 10.8 条件化装配Bean
+
+背景: 在某些条件下需要进行条件判断，判断是否需要装配`Bean`。
+
+方案: 这时`Spring`提供了注解`@Conditional`去配置，通过它可以配置一个或多个实现了`Condition`接口的类
+
+例子:
+1. 如何放置条件判断
+    ````java
+    @Bean(name="dataSource")
+    @Condition({DataSourceCondition.class})
+    public DataSource getDataSource(){
+        //.....
+    }
+    ````
+2. 条件判断类的实现
+    ````java
+    public class DataSourceCondition implements Condition{
+        @Override
+        public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata){
+            //....
+        }
+    }
+    ````
+    - 这里要求实现接口`Condition`的`matches`方法。如果此方法返回`true`则`Spring`会创建对应的`Bean`
+
+### 10.9 Bean的作用域
+
+在默认情况下,`SpringIoc`容器只会对一个`Bean`创建一个实例，有时候我们希望容器可以产生多实例，就需要修改`Spring`的作用域
+
+`Spring`提供4种作用域
+- 单例(singleton): 默认选项，在整个应用中，`Spring`只会为其生成一个`Bean`实例
+- 原型(prototype): 当每次通过容器获取`Bean`时都会创建一个实例
+- 会话(session): 在会话过程中`spring`只创建一个实例
+- 请求(request): 在一个请求中`spring`只创建一个实例
+
+### 10.10 使用Spring表达式(SpringEL)
+
+SpringEL的主要功能
+- 使用`Bean`的`id`来引用`Bean`
+- 使用指定对象的方法和访问对象的属性
+- 进行运算
+- 提供正则表达式进行匹配
+- 集合配置
+
+也就是为注解提供一定的逻辑运算功能，具体使用方式略
+
+
+
+
 
