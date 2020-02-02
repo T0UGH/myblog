@@ -135,10 +135,212 @@ AOP的流程图如下所示
 
 ### 11.3 使用`@AspectJ`注解开发`SpringAOP`
 
+#### 11.3.1 选择连接点
+
+`Spring`是方法级别的`AOP`框架，所以连接点只能是某个类下的某个方法。用动态代理来理解，就是要拦截哪个方法织入对应的`AOP`通知。
+
+例子：我们先定义一个接口，和一个实现类，然后将实现类里的方法作为连接点
+````java
+package ComponentDemo;
+
+public interface RoleService {
+    public void printRoleInfo(Role role);
+}
+````
+
+````java
+package ComponentDemo;
+
+import org.springframework.stereotype.Component;
+
+@Component(value = "roleServiceImpl")
+public class RoleServiceImpl implements RoleService {
+    @Override
+    public void printRoleInfo(Role role) {
+        System.out.println("id = " + role.getId());
+        System.out.println("roleName = " + role.getRoleName());
+        System.out.println("note = " + role.getNote());
+    }
+}
+````
+
+#### 11.3.2 创建切面
+
+在`Spring`中使用`@Aspect`注解一个类，那么这个类就会被看作切面，就相当于动态代理中的拦截器类
+
+````java
+package ComponentDemo;
+
+
+import org.aspectj.lang.annotation.*;
+import org.springframework.stereotype.Component;
+
+@Aspect
+@Component(value = "roleAspect")
+public class RoleAspect{
+    @Before("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))")
+    public void before(){
+        System.out.println("before......");
+    }
+
+    @After("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))")
+    public void after(){
+        System.out.println("after......");
+    }
+
+    @AfterReturning("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))")
+    public void afterReturning(){
+        System.out.println("afterReturning......");
+    }
+
+    @AfterThrowing("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))")
+    public void afterThrowing(){
+        System.out.println("afterThrowing......");
+    }
+}
+````
+
+#### 11.3.3 定义切点
+
+毕竟不是所有方法都需要使用`AOP`编程，所以我们的程序要有判断是否启用切面的功能，这也就是切点的定义，确定对于哪些调用启用切面。
+
+如上面的例程所示，`Spring`是通过`@Before`这类注解后的正则表达式来判断切点的，例如下面这个表达式`execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))`
+- `execution`: 表示执行方法的时候触发
+- `*`:代表任意返回类型的方法
+- `ComponentDemo.RoleServiceImpl`: 代表类的全限定名
+- `printRoleInfo`: 是被拦截的方法名称
+- `(..)`: 任意的参数
+
+进一步讨论这个正则表达式，它还可以配置如下内容
+
+| AspectJ | 描述 |
+|--|--|
+|`arg()`|规定连接点匹配参数为指定类型的方法|
+|`@args()`|规定连接点匹配指定注解标注的方法|
+|`execution`|匹配连接点的执行方法|
+|`this()`|规定连接点匹配`AOP`代理的`Bean`|
+|`target`|规定连接点匹配被代理对象为指定的类型|
+|`@target()`|规定连接点匹配特定的执行对象，这些对象要符合指定的注解类型|
+|`within()`|规定连接点匹配指定的包|
+|`@within()`|规定连接点匹配指定的类型|
+|`@annotation`|规定匹配带有指定注解的连接点|
+
+#### 11.3.4 测试AOP
+
+这一节来编写程序测试`AOP`是否生效
+
+首先需要进行`Spring` `Bean`的配置
+````java
+package ComponentDemo;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
+@EnableAspectJAutoProxy
+@ComponentScan(basePackages = {"ComponentDemo"})
+public class PojoConfig {
+}
+````
+- `@EnableAspectJAutoProxy`代表启用`AspectJ`框架的自动代理，这时`Spring`才会生成动态代理对象，进而使用`AOP`
+
+然后编写程序的主入口即可
+````java
+package ComponentDemo;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+public class Main {
+    public static void main(String[] args) {
+        ApplicationContext ctx = new AnnotationConfigApplicationContext(PojoConfig.class);
+        Role role = ctx.getBean(Role.class);
+        RoleService roleService = ctx.getBean(RoleService.class);
+        roleService.printRoleInfo(role);
+        ((AnnotationConfigApplicationContext) ctx).close();
+    }
+}
+````
+
+运行结果如下
+````
+before......
+id = 1
+roleName = role_name_1
+note = role_note_1
+after......
+afterReturning......
+````
+
+#### 11.3.5 环绕通知
+
+环绕通知是`SpringAOP`中最强大的通知，它可以同时实现前置通知和后置通知。它保留了调度被代理对象原有方法的功能，所以它既强大，又灵活。但是由于强大，它的可控制性不那么强，如果不需要大量改变业务逻辑，一般而言并不需要使用它。
+
+例如
+````java
+ @Around("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))")
+    public void around(ProceedingJoinPoint jp){
+        System.out.println("around before......");
+        try{
+            jp.proceed();
+        }catch(Throwable e){
+            e.printStackTrace();
+        }
+        System.out.println("around after......");
+    }
+````
+
+#### 11.3.6 织入
+
+织入是生成代理对象并将切面内容放入约定流程的过程。使用`JDK`动态代理时，必须拥有接口，而使用`CGLib` 则不需要，于是`Spring`就提供了一个规则：当类的实现存在接口的时候，`Spring`将提供`JDK`动态代理。而当类不存在接口的时候没有办法使用`JDK`动态代理，`Spring`会采用`CGLIB`来生成代理对象。
+
+#### 11.3.7 给通知传递参数
+
+有时我们希望给各类通知传递参数，可以使用如下方法
+````java
+@Before("execution(* ComponentDemo.RoleServiceImpl.printRoleInfo(..))" + "&& args(role)")
+public void before(Role role){
+    System.out.println("before......" + role.getRoleName());
+}
+````
+- 在切点的表达式中，加入了参数的定义，这样便可以传递参数
+
+#### 11.3.8 引入
+
+略
+
 ### 11.4 使用`XML`配置开发`SpringAOP`
+
+方法大致和使用注解类似，这里不详细说明
 
 ### 11.5 经典`SpringAOP`应用程序
 
+略
+
 ### 11.6 多个切面
 
+Spring支持使多个切面按照指定的顺序运行，这时候可以使用注解`@Order`
+````java
+@Aspect
+@Order(1)
+public class Aspect1{
+}
+````
+````java
+@Aspect
+@Order(2)
+public class Aspect2{
+}
+````
+````java
+@Aspect
+@Order(3)
+public class Aspect2{
+}
+````
+
+Spring底层是通过责任链来处理多个切面的，如下图
+![](src/200202_3.png)
+
+
 ### 11.7 小结
+
+`AOP`是`Spring`两大核心内容之一，通过`AOP`可以将一些比较公用的代码抽取出来，进而减少开发者的工作量
