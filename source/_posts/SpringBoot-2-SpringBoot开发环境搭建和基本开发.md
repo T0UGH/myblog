@@ -116,7 +116,7 @@ categories:
 ````
 - 从这里可以看出，当加入`spring-boot-starter-web`后，它会通过`Maven`将对应的资源加载到我们的工程中，这样就可以形成依赖
 - 于此同时在`spring-boot-autoconfigure`包中，`SpringBoot`帮我们做了很多自动的配置，由下图所示
-  ![](src/200207_0.png)
+  ![](SpringBoot-2-SpringBoot开发环境搭建和基本开发/200207_0.png)
 - 上面两条就是为什么在没有任何配置下`Springboot`可以启动`SpringMVC`项目
 
 ### 2.3 使用自定义配置
