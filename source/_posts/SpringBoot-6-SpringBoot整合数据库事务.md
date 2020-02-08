@@ -217,7 +217,7 @@ public interface PlatformTransactionManager extends TransactionManager{
 |--|--|--|--|
 |T1|||商品库存初始化为2|
 |T2|读取库存为2|||
-|T3||扣减库存||库存为1|
+|T3||扣减库存|库存为1|
 |T4||读取库存为1|因为开启了未提交读，可以读取事务1中的库存为1|
 |T5||扣减库存|事务2库存为0|
 |T6||提交事务|数据库更新为0|
@@ -233,7 +233,7 @@ public interface PlatformTransactionManager extends TransactionManager{
 |--|--|--|--|
 |T1|||商品库存初始化为2|
 |T2|读取库存为2|||
-|T3||扣减库存||库存为1|
+|T3||扣减库存|库存为1|
 |T4||读取库存为2|因为开启了读写提交，读取数据库中的库存为2|
 |T5||扣减库存|事务2库存为1|
 |T6||提交事务|数据库更新为1|
@@ -246,7 +246,7 @@ public interface PlatformTransactionManager extends TransactionManager{
 |--|--|--|--|
 |T1|||商品库存初始化为1|
 |T2|读取库存为1|||
-|T3||扣减库存||此时不提交事务|
+|T3||扣减库存|此时不提交事务|
 |T4||读取库存为1|认为可扣除|
 |T5|提交事务||数据库库存为0|
 |T6||扣除库存|失败，不可扣除，也因为此时库存已经是0|
@@ -261,7 +261,7 @@ public interface PlatformTransactionManager extends TransactionManager{
 |--|--|--|--|
 |T1|||商品库存初始化为1|
 |T2|读取库存为1|||
-|T3||扣减库存||此时不提交事务|
+|T3||扣减库存|此时不提交事务|
 |T4||尝试读取库存|不允许读取，等待事务1提交，阻塞事务2|
 |T5|提交事务||库存为0|
 |T6||读取库存|库存为0|
@@ -273,7 +273,7 @@ public interface PlatformTransactionManager extends TransactionManager{
 |--|--|--|--|
 |T1|读取库存50件||商品库存初始化为100，现在已经销售50笔，库存50件|
 |T2||查询(`count`)销售记录50笔||
-|T3|扣减库存||||
+|T3|扣减库存|||
 |T4|插入1笔提交记录|||
 |T5|提交事务||库存为49件，销售记录51笔|
 |T6||打印销售记录51笔|这里与查询的不一致，在事务2看来有1笔是虚幻的，与之前查询的不一致|
