@@ -20,3 +20,4 @@ theme/next/source/lib/Han/*
 !theme/next/source/lib/Han/dist/
 theme/next/node_modules
 theme/next/package-lock.json
+themes/pure
