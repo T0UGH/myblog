@@ -138,7 +138,7 @@ Vue.component('user-data', {
 })
 ````
 2. 传递给`<slot>`的属性可以用`<slot-scope>`属性中定义的变量来获取
-````
+````html
 <div>
     <user-data slot-scope="user">
         <p v-if="user">用户名:{% raw %}{{ user.name }}{% endraw %}</p>
